@@ -28,9 +28,10 @@ async function lookupPromise(url) {
 app.post("/api/shorturl", async function (req, res) {
   try {
     console.log('*1*', req.body.url);
-    // if(!urlRegex.test(req.body.url)){
-    //   throw error;
-    // }
+    if(!urlRegex.test(req.body.url)){
+      console.log('*5', 'no match');
+      throw 'not match';
+    }
     const hostname = new URL(req.body.url)?.hostname;
     const address = await lookupPromise(hostname);
     if (address) {
