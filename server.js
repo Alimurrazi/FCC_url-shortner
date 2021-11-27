@@ -27,23 +27,23 @@ async function lookupPromise(url) {
 
 app.post("/api/shorturl", async function (req, res) {
   try {
-    console.log('1', req.body.url);
+    console.log('*1*', req.body.url);
     if(!urlRegex.test(req.body.url)){
       throw error;
     }
-    const url = new URL(req.body.url)?.hostname;
-    const address = await lookupPromise(url);
+    const hostname = new URL(req.body.url)?.hostname;
+    const address = await lookupPromise(hostname);
     if (address) {
       let shorturl = 0;
       const index = urlList.findIndex((url) => url === req.body.url);
-      console.log('2', index);
+      console.log('*2*', index);
       if (index === -1) {
         urlList.push(req.body.url);
         shorturl = urlList.length - 1;
       } else {
         shorturl = index;
       }
-      console.log('3', shorturl);
+      console.log('*3*', shorturl);
       res.json({ original_url: req.body.url, short_url: shorturl });
     } else {
       res.json({ error: "Invalid URL" });
@@ -55,6 +55,7 @@ app.post("/api/shorturl", async function (req, res) {
 
 app.get("/api/shorturl/:shorturlIndex", function (req, res, next) {
   res.redirect(urlList[req.params.shorturlIndex]);
+  next();
 });
 
 app.listen(port, function () {
