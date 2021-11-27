@@ -3,10 +3,9 @@ const express = require("express");
 const cors = require("cors");
 const dns = require("dns");
 const app = express();
-
 const port = process.env.PORT || 3000;
-
 const urlList = [];
+const urlRegex = new RegExp(/^http:\/\/www|^https:\/\/www/g);
 
 app.use(cors());
 app.use("/public", express.static(`${process.cwd()}/public`));
@@ -28,6 +27,9 @@ async function lookupPromise(url) {
 
 app.post("/api/shorturl", async function (req, res) {
   try {
+    if(!urlRegex.test(req.body.url)){
+      throw error;
+    }
     const url = new URL(req.body.url)?.hostname;
     const address = await lookupPromise(url);
     if (address) {
@@ -48,7 +50,6 @@ app.post("/api/shorturl", async function (req, res) {
 
 app.get("/api/shorturl/:shorturlIndex", function (req, res, next) {
   res.redirect(urlList[req.params.shorturlIndex]);
-  next();
 });
 
 app.listen(port, function () {
