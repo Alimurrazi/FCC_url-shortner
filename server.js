@@ -5,7 +5,7 @@ const dns = require("dns");
 const app = express();
 const port = process.env.PORT || 3000;
 const urlList = [];
-const urlRegex = new RegExp(/^http:\/\/www|^https:\/\/www/g);
+const urlRegex = new RegExp(/^http:\/\/|^https:\/\//g);
 
 app.use(cors());
 app.use("/public", express.static(`${process.cwd()}/public`));
