@@ -1,24 +1,56 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const dns = require("dns");
 const app = express();
 
-// Basic Configuration
 const port = process.env.PORT || 3000;
 
+const urlList = [];
+
 app.use(cors());
+app.use("/public", express.static(`${process.cwd()}/public`));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use('/public', express.static(`${process.cwd()}/public`));
-
-app.get('/', function(req, res) {
-  res.sendFile(process.cwd() + '/views/index.html');
+app.get("/", function (req, res) {
+  res.sendFile(process.cwd() + "/views/index.html");
 });
 
-// Your first API endpoint
-app.get('/api/hello', function(req, res) {
-  res.json({ greeting: 'hello API' });
+async function lookupPromise(url) {
+  return new Promise((resolve, reject) => {
+    dns.lookup(url, (err, address, family) => {
+      if (err) reject(err);
+      resolve(address);
+    });
+  });
+}
+
+app.post("/api/shorturl", async function (req, res) {
+  try {
+    const url = new URL(req.body.url)?.hostname;
+    const address = await lookupPromise(url);
+    if (address) {
+      let shorturl = 0;
+      const index = urlList.findIndex((url) => url === req.body.url);
+      if (index === -1) {
+        urlList.push(req.body.url);
+        shorturl = urlList.length - 1;
+      } else {
+        shorturl = index;
+      }
+      res.json({ original_url: req.body.url, short_url: shorturl });
+    }
+  } catch (err) {
+    res.json({ error: "invalid url" });
+  }
 });
 
-app.listen(port, function() {
+app.get("/api/shorturl/:shorturlIndex", function (req, res, next) {
+  res.redirect(urlList[req.params.shorturlIndex]);
+  next();
+});
+
+app.listen(port, function () {
   console.log(`Listening on port ${port}`);
 });
