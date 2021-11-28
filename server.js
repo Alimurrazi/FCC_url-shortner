@@ -27,27 +27,28 @@ async function lookupPromise(url) {
 
 app.post("/api/shorturl", async function (req, res) {
   try {
-    console.log('*1*', req.body.url);
-    if(!urlRegex.test(req.body.url)){
-      console.log('*5', 'no match');
-      res.json({ error: "Invalid URL" });
-    }
-    const hostname = new URL(req.body.url)?.hostname;
-    const address = await lookupPromise(hostname);
-    if (address) {
-      let shorturl = 0;
-      const index = urlList.findIndex((url) => url === req.body.url);
-      console.log('*2*', index);
-      if (index === -1) {
-        urlList.push(req.body.url);
-        shorturl = urlList.length - 1;
-      } else {
-        shorturl = index;
+    console.log("*1*", req.body.url);
+    if (req.body.url.includes("http://") || req.body.url.includes("https://")) {
+      console.log("*6*", "sorry i am again");
+      const hostname = new URL(req.body.url)?.hostname;
+      const address = await lookupPromise(hostname);
+      console.log(address);
+      if (address) {
+        let shorturl = 0;
+        const index = urlList.findIndex((url) => url === req.body.url);
+        console.log("*2*", index);
+        if (index === -1) {
+          urlList.push(req.body.url);
+          shorturl = urlList.length - 1;
+          console.log("*5", 'push koro khush raho');
+        } else {
+          shorturl = index;
+        }
+        console.log("*3*", shorturl);
+        res.json({ original_url: req.body.url, short_url: shorturl });
       }
-      console.log('*3*', shorturl);
-      res.json({ original_url: req.body.url, short_url: shorturl });
     } else {
-      res.json({ error: "Invalid URL" });
+      throw "no match";
     }
   } catch (err) {
     res.json({ error: "Invalid URL" });
@@ -55,7 +56,7 @@ app.post("/api/shorturl", async function (req, res) {
 });
 
 app.get("/api/shorturl/:shorturlIndex", function (req, res, next) {
-  console.log('*4*', req.params.shorturlIndex);
+  console.log("*4*", req.params.shorturlIndex);
   res.redirect(urlList[req.params.shorturlIndex]);
   next();
 });
